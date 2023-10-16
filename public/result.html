@@ -1,0 +1,345 @@
+<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap-extended.min.css">
+<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/fonts/simple-line-icons/style.min.css">
+<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/colors.min.css">
+<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap.min.css">
+<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+
+  <!-- Include ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    .grey-bg {  
+        background-color: #ffffff;
+    }
+    .custom-section-card {
+      max-width: 1000px; /* Adjust as needed */
+      padding: 15px;
+      font-size: 1.5em;
+    }
+    .card {
+        max-width: 400px; 
+        height :150px;
+        padding: 15px;
+        font-size: 1.5em;
+        /* Adjust this value to your desired width */
+    }
+    /* Apply the custom styles to the second section cards */
+.custom-second-section-card {
+  max-width: 1000px;
+  padding: 15px;
+  font-size: 1.5em;
+}
+
+    .left-panel {
+        flex: 1;
+        position: sticky;
+        top :0;
+        padding: 12px;
+    }
+    table {
+        width: 350px; 
+        border-collapse: collapse;
+    }
+    
+    table,th,td{
+        border: 1px solid #eeebeb;
+    
+    }
+    th {
+        padding: 5px;
+        text-align: left;
+        background-color: #090c42;
+        color: white;
+    
+    }
+    td {
+        padding:5px;
+        border: 1px solid #807c7c;
+    
+    }
+        
+    .table-container {
+        max-width: 380px;
+        margin-left: auto; /* Push the container to the right */
+    }
+    .table-scroll {
+        max-height: 700px; /* Adjust the max height as needed */
+        overflow-y: auto; /* Enable vertical scrollbar */
+    }
+    
+    tr:nth-child(even){background-color: #ebeaec;}
+    tr:hover {background-color: #ddd;}
+    .label-width {
+        width: 100px; /* Set the desired width */
+        /* Add any other desired styles for the label */
+        }
+
+        .warning {
+            color: #5dec24!important;
+        }
+        .success {
+            color: #e909a6!important;
+        }
+        .notwarning {
+            color: #fa0808!important;
+        }
+        .bold-uppercase {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+</style>
+<div class="grey-bg container-fluid">
+    <br>
+    
+  <section id="minimal-statistics">
+    <h3 class="bold-uppercase">{{selectedTable}}</h3>
+
+    <div class="row">
+      <div class="col-2 mt-3 mb-1">
+       
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xl-4 col-sm-6 col-12"> 
+        <div class="card">
+          <div class="card-content">
+            <div class="card-body">
+              <div class="media d-flex">
+                <div class="align-self-center">
+                    <i class="icon-graph success font-large-2 float-left"></i>
+                </div>
+                <div class="media-body text-right">
+                  <h3 class="success">{{averageKmPerDay}}</h3>
+                  <span>Average Km/Day</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-4 col-sm-6 col-12">
+        <div class="card">
+          <div class="card-content">
+            <div class="card-body">
+              <div class="media d-flex">
+                <div class="align-self-center">
+                    <i class="icon-power warning font-large-2 float-left custom-icon-color"></i>
+                </div>
+                <div class="media-body text-right">
+                  <h3 class="warning">{{onCount}}</h3>
+                  <span>ignition On count</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-4 col-sm-6 col-12">
+        <div class="card">
+          <div class="card-content">
+            <div class="card-body">
+              <div class="media d-flex">
+                <div class="align-self-center">
+                    <i class="icon-power notwarning font-large-2 float-left custom-icon-color"></i>
+                </div>
+                <div class="media-body text-right">
+                  <h3 class="danger">{{offCount}}</h3>
+                  <span>Ignition Off count</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+    <section id="stats-subtitle">
+      <div class="row">
+        <div class="col-2 mt-3 mb-1">
+        </div>
+      </div>
+    <div class="row">
+      <div class="col-xl-6 col-md-6 ">
+        <div class="custom-second-section-card">
+          <div class="custom-second-section-card-content">
+            <div class="custom-second-section-card-body cleartfix">
+              <div class="media align-items-stretch">
+                <div class="align-self-center">
+                  <div id="speedGraph"><!-- Plotly chart will be drawn inside this DIV --></div>
+                  <script>
+                           // Parse the JSON data passed from the server
+                    const avgSpeedDataMergedJSON = '{{avgSpeedDataMergedJSON}}';
+                    const avgSpeedData = JSON.parse(avgSpeedDataMergedJSON);
+    
+                    // Extract the dates and speeds from the JSON data
+                    const dates = Object.keys(avgSpeedData);
+                    const avgSpeeds = Object.values(avgSpeedData);
+    
+                    const trace2 = {
+                      x: dates,
+                      y: avgSpeeds,
+                      type: 'scatter',
+                      mode: 'lines+markers', // Display lines and markers
+                      name: 'Avg Speed',
+                      line: {
+                          color: 'rgb(153, 102, 255)', // Customize the color of the line
+                          shape: 'spline', // Use 'spline' for a smooth line
+                          smoothing: 1.3 // Adjust the smoothing value (1.3 is a reasonable starting point)
+                      },
+                      marker: {
+                          color: 'rgb(75, 192, 192)', // Customize the color of the markers
+                          size: 7, 
+                          symbol: 'circle' 
+                      }
+                  };
+                  
+                  const layout = {
+                    autosize: false,
+                    width: 550,
+                    height: 400,
+                      title: 'Average Speed ',
+                      xaxis: {
+                          title: 'Date',
+                          showgrid: false
+                      },
+                      yaxis: {
+                          title: 'Speed',
+                      }
+                  };
+                  Plotly.newPlot('speedGraph', [trace2], layout);
+                </script>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-6 col-md-6">
+        <div class="custom-second-section-card">
+          <div class="custom-second-section-card-content">
+            <div class="custom-second-section-card-body cleartfix">
+              <div class="media align-items-stretch">
+                <div class="align-self-center">
+                  <div id="myDiv"><!-- Plotly chart will be drawn inside this DIV --></div>
+                  <script>
+
+                    const maxSpeedDataJSON1 = '{{maxSpeedDataJSON1}}';
+                    const maxSpeedData = JSON.parse(maxSpeedDataJSON1);
+                    const date = Object.keys(maxSpeedData);
+                    const maxSpeeds = Object.values(maxSpeedData);
+
+                    var trace1 = {
+                      x: date, 
+                      y: maxSpeeds, 
+                      type: 'bar',
+                      name: 'Max Speed',
+                      line:{
+                        color: 'rgb(255, 99, 132)', // Customize the color of the line
+                          shape: 'spline', // Use 'spline' for a smooth line
+                          smoothing: 1.3
+                      },
+                      marker: {
+                        color: 'rgb(54, 162, 235)', // Customize the color of the markers
+                        size: 7, 
+                        symbol: 'circle' 
+                    }
+                    };
+                    var layout1 = {
+                      autosize: false,
+                      width: 550,
+                      height: 400,
+                      title: 'Max Speed',
+                      xaxis: {
+                          title: 'Date',
+                          showgrid: false
+
+                      },
+                      yaxis: {
+                          title: 'Speed'
+                      }
+                  };
+                    Plotly.newPlot('myDiv',[trace1], layout1);
+                </script>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xl-12 col-md-12 ">
+        <div class="custom-section-card">
+          <div class="custom-section-card-content">
+            <div class="custom-section-card-body cleartfix">
+              <div class="media align-items-stretch">
+                <div class="align-self-center"></div>   
+                <div id="heatmap" ></div>
+<script>
+  const avgKmByDayAndHourJSON1 = '{{avgKmByDayAndHourJSON}}';
+  const avgKmByDayAndHourJSON2 = JSON.parse(avgKmByDayAndHourJSON1);
+  const dates3 = Object.keys(avgKmByDayAndHourJSON2);
+  const z = dates3.map((date) => {
+    return avgKmByDayAndHourJSON2[date].map(entry => entry.avgKm || 0);
+  });
+  const customColorScale = [
+       ['0.0', 'rgb(189, 177, 180)'],
+    ['0.111111111111', 'rgb(106, 215, 39)'],
+    ['0.222222222222', 'rgb(7, 184, 48)'],
+    ['0.333333333333', 'rgb(253,174,97)'],
+    ['0.444444444444', 'rgb(254,224,144)'],
+    ['0.555555555556', 'rgb(232, 122, 19)'],
+    ['0.666666666667', 'rgb(214, 103, 114)'],
+    ['0.777777777778', 'rgb(176, 23, 38)'],
+    ['0.888888888889', 'rgb(176, 23, 38)'],
+    ['1.0', 'rgb(179, 9, 26)']
+    ];
+  const data = [{
+  x: Array.from({ length: 24 }, (_, i) => i), // Hours
+  y: dates3, // Dates only
+  z: z,
+  type: 'heatmap',
+  colorscale: 'customColorScale',
+  colorbar: {
+    title:'km',
+    titleside:'right'
+  } // Choose the colorscale you prefer
+}];
+
+
+const layout3 = {
+  autosize: false,
+  width: 900,  // Increase the width to your desired value, e.g., 600
+  height: 400, 
+
+  xaxis: {
+    title: 'Hour',
+    tickmode: 'array',
+    tickvals: Array.from({ length: 24 }, (_, i) => i), // Tick values [0, 1, 2, 3, 4, 5, 6, 7, ...]
+    ticktext: Array.from({ length: 24 }, (_, i) => i), // Tick labels [0, 1, 2, 3, 4, 5, 6, 7, ...]
+  },
+  yaxis: {
+    tickvals: dates3, // Use the dates as tick values
+    ticktext: dates3.map(date => new Date(date).toLocaleDateString()) // Format the dates as you prefer
+  },
+  title: 'utilization Heatmap',
+  zaxis: {
+    title: 'km' // Add the z-axis title here
+  }
+};
+  Plotly.newPlot('heatmap', data, layout3);
+</script>
+
+                </div>    
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  </div>
+</section>
