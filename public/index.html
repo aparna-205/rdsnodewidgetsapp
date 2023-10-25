@@ -53,11 +53,13 @@
     
 table {
     width: 350px; 
+
     border-collapse: collapse;
 }
 
 table,th,td{
     border: 1px solid #eeebeb;
+    font-size: 11px; /* Adjust the font size as needed */
 
 }
 th {
@@ -71,9 +73,7 @@ td {
     padding:5px;
     border: 1px solid #807c7c;
 
-}
-  
-   
+} 
     body {
         display: flex;
     }
@@ -81,7 +81,7 @@ td {
 
     
     .table-container {
-        max-width: 380px;
+        max-width: 370px;
         margin-left: auto; /* Push the container to the right */
     }
     
@@ -164,8 +164,14 @@ td {
                     const radio = document.createElement('input');
                     radio.type = 'radio';
                     radio.name = 'table';
-                    radio.value = tableName;
-                    cell1.textContent = tableName;
+                    radio.value = tableName; // Set the IMEI number as the value for selection
+                    
+                    // Display the object name
+                    if (typeof imeiToObject !== 'undefined' && imeiToObject[tableName]) {
+                        cell1.textContent = imeiToObject[tableName]; // Display the object name
+                    } else {
+                        cell1.textContent = tableName; // Display the table name
+                    }
                     cell2.appendChild(radio);
                     row.appendChild(cell1);
                     row.appendChild(cell2);
@@ -174,6 +180,8 @@ td {
             })
             .catch(error => console.error(error));
     </script>
+    
+    
     <script>
         $(document).ready(function() {
             $('#dateTimeRange').daterangepicker({
@@ -184,6 +192,8 @@ td {
                     cancelLabel: 'Clear',
                     format: 'MM/DD/YYYY HH:mm',
                 },
+                minDate: '09/01/2023', // Set the minimum date
+                maxDate: moment(),    // Set the maximum date to the current date
                 ranges: {
                     'Last Week': [moment().startOf('week').subtract(1, 'week'), moment().startOf('week').subtract(1, 'second')],
                     'This Week': [moment().startOf('week'), moment()],
@@ -219,6 +229,7 @@ td {
                 });
             });
         });
+        
     </script>
     
 </html>

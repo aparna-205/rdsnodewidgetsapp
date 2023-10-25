@@ -1,12 +1,14 @@
 const { createPool } = require('mysql');
 const express = require('express');
+const imeiToObject = {}; // Define imeiToObject at a higher scope
+
 const bodyParser = require('body-parser'); // Import body-parser
 const app = express();
-const port = 5000;
+const port = 3000;
 const pool = createPool({
-    host: 'ingo-flee.chcwfzqnq2ii.ap-south-2.rds.amazonaws.com',
-    user: 'admin',
-    password: 'ingo1234',
+    host: 'localhost',
+    user: 'root',
+    password: 'aparna',
     database: 'ingoflee',
     connectionLimit: 10
 });
@@ -14,7 +16,6 @@ const fs = require('fs');
 const path = require('path');
 
 const getTableNamesQuery = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE table_schema = 'ingoflee';";
-// Configure body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
@@ -28,22 +29,17 @@ app.get('/getTableNames', (req, res) => {
         res.json({ tableNames });
     });
 });
-
 app.post('/fetch-data', (req, res) => {
     const selectedTable = req.body.table;
+
     const dateTimeRange = req.body.dateTimeRange;
     const [fromDateTime, toDateTime] = dateTimeRange.split(' - ');
     const fromDateTimeObj = new Date(fromDateTime);
     const toDateTimeObj = new Date(toDateTime);
     const fromDateTimeSQL = fromDateTimeObj.toISOString().slice(0, 19).replace('T', ' ');
     const toDateTimeSQL = toDateTimeObj.toISOString().slice(0, 19).replace('T', ' ');
-
-    const fetchDataQuery = `
-        SELECT * FROM ${selectedTable}
-        WHERE date_time BETWEEN STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s');
+    const fetchDataQuery = `SELECT * FROM \`${selectedTable}\`WHERE date_time BETWEEN STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s');
     `;
-
-
     pool.query(fetchDataQuery, [fromDateTimeObj, toDateTimeObj], (err, results) => {
         if (err) {
             console.error(`Error fetching data from ${selectedTable}:`, err);
@@ -80,19 +76,27 @@ app.post('/fetch-data', (req, res) => {
         }
        
     
-        const data = results;
         let totalDistance = 0;
-        let onCount = 0;
-        let offCount = 0;
-        data.forEach((row) => {
-            if (row['IGN'] === 'ON') {
-                onCount++;
-            } else if (row['IGN'] === 'OFF') {
-                offCount++;
+        const data = results;
+        let onToOffCount = 0;
+
+         for (let i = 0; i < data.length - 1; i++) {
+               if (data[i]['IGN'] === 'ON' && data[i + 1]['IGN'] === 'OFF') {
+          onToOffCount++;
             }
-        
-        });
-        console.log(data);
+           }
+           let offToOnCount = 0;
+
+           for (let i = 0; i < data.length - 1; i++) {
+               if (data[i]['IGN'] === 'OFF' && data[i + 1]['IGN'] === 'ON') {
+                   offToOnCount++;
+               }
+           }
+           
+           console.log('Number of OFF to ON state transitions:', offToOnCount);
+
+        console.log('Number of ON to OFF state transitions:', onToOffCount);
+
         const avgKmByDate = {};
         data.forEach((row)=> {
             if (row['IGN'] !== 'OM') {
@@ -153,16 +157,13 @@ for (const date in groupedData) {
         }
     }
 }
-console.log(avgKmByDayAndHour);
 const avgKmByDayAndHourJSON = JSON.stringify(avgKmByDayAndHour);
     
     const sumOfAverageKms = avgKmData.reduce((acc, dataPoint) => acc + dataPoint.averageKm, 0);
     const numberOfDays = avgKmData.length;
     const averageKmPerDay = (sumOfAverageKms / numberOfDays).toFixed(2);
 
-    console.log(`Sum of all averageKm: ${sumOfAverageKms}`);
-    console.log(`Number of days: ${numberOfDays}`);
-    console.log(`Average Km per day: ${averageKmPerDay}`);
+
 
         const maxSpeedByDate = {};
         data.forEach((row) => {
@@ -222,8 +223,8 @@ const avgKmByDayAndHourJSON = JSON.stringify(avgKmByDayAndHour);
         avgSpeedDataArray.forEach((entry) => {
         avgSpeedDataObject[entry.date] = parseFloat(entry.averageSpeed);
         });
-
         const avgSpeedDataMergedJSON = JSON.stringify(avgSpeedDataObject);
+        console.log(imeiToObject);
         const htmlTemplatePath = path.join(__dirname, 'public', 'result.html');
         fs.readFile(htmlTemplatePath, 'utf8', (err, template) => {
             if (err) {
@@ -235,11 +236,12 @@ const avgKmByDayAndHourJSON = JSON.stringify(avgKmByDayAndHour);
                 .replace('{{fromDateTimeObj}}', fromDateTimeObj)
                 .replace('{{toDateTimeObj}}', toDateTimeObj)
                 .replace('{{averageKmPerDay}}', averageKmPerDay)
-                .replace('{{onCount}}', onCount)
-                .replace('{{offCount}}', offCount)
+                .replace('{{onToOffCount}}', onToOffCount)
+                .replace('{{offToOnCount}}', offToOnCount)
                 .replace('{{maxSpeedDataJSON1}}',maxSpeedDataJSON1)
                 .replace('{{avgSpeedDataMergedJSON}}',avgSpeedDataMergedJSON)
-                .replace('{{avgKmByDayAndHourJSON}}',avgKmByDayAndHourJSON);
+                .replace('{{avgKmByDayAndHourJSON}}',avgKmByDayAndHourJSON)
+                .replace('{{imeiToObject}}',imeiToObject);
                 res.send(renderedHtml);
         });
     });

@@ -32,43 +32,51 @@
   font-size: 1.5em;
 }
 
-    .left-panel {
-        flex: 1;
-        position: sticky;
-        top :0;
-        padding: 12px;
-    }
-    table {
-        width: 350px; 
-        border-collapse: collapse;
-    }
-    
-    table,th,td{
-        border: 1px solid #eeebeb;
-    
-    }
-    th {
-        padding: 5px;
-        text-align: left;
-        background-color: #090c42;
-        color: white;
-    
-    }
-    td {
-        padding:5px;
-        border: 1px solid #807c7c;
-    
-    }
-        
-    .table-container {
-        max-width: 380px;
-        margin-left: auto; /* Push the container to the right */
-    }
-    .table-scroll {
-        max-height: 700px; /* Adjust the max height as needed */
-        overflow-y: auto; /* Enable vertical scrollbar */
-    }
-    
+/* Make the table headers sticky at the top of the table */
+table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #090c42;
+  color: white;
+}
+
+/* Make the table headers z-index higher for stacking */
+table thead th {
+  z-index: 2;
+}
+
+/* Style the table */
+table {
+  width: 350px;
+  border-collapse: collapse;
+}
+
+table, th, td {
+  border: 1px solid #eeebeb;
+}
+
+th {
+  padding: 5px;
+  text-align: left;
+}
+
+td {
+  padding: 5px;
+  border: 1px solid #807c7c;
+}
+
+/* Limit the table container's width and add a horizontal scrollbar */
+.table-container {
+  max-width: 380px;
+  overflow-x: auto;
+}
+
+/* Add vertical scrollbar for the table */
+.table-scroll {
+  max-height: 700px;
+  overflow-y: auto;
+}
+
     tr:nth-child(even){background-color: #ebeaec;}
     tr:hover {background-color: #ddd;}
     .label-width {
@@ -99,7 +107,6 @@
 
     <div class="row">
       <div class="col-2 mt-3 mb-1">
-       
       </div>
     </div>
     <div class="row">
@@ -129,7 +136,7 @@
                     <i class="icon-power warning font-large-2 float-left custom-icon-color"></i>
                 </div>
                 <div class="media-body text-right">
-                  <h3 class="warning">{{onCount}}</h3>
+                  <h3 class="warning">{{onToOffCount}}</h3>
                   <span>ignition On count</span>
                 </div>
               </div>
@@ -146,7 +153,7 @@
                     <i class="icon-power notwarning font-large-2 float-left custom-icon-color"></i>
                 </div>
                 <div class="media-body text-right">
-                  <h3 class="danger">{{offCount}}</h3>
+                  <h3 class="danger">{{offToOnCount}}</h3>
                   <span>Ignition Off count</span>
                 </div>
               </div>
@@ -272,7 +279,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-xl-12 col-md-12 ">
+      <div class="col-xl-12 col-md-12" style="width: 18rem;">
         <div class="custom-section-card">
           <div class="custom-section-card-content">
             <div class="custom-section-card-body cleartfix">
@@ -306,7 +313,7 @@
   colorscale: 'customColorScale',
   colorbar: {
     title:'km',
-    titleside:'right'
+    titleside:"right"
   } // Choose the colorscale you prefer
 }];
 
@@ -320,12 +327,20 @@ const layout3 = {
     title: 'Hour',
     tickmode: 'array',
     tickvals: Array.from({ length: 24 }, (_, i) => i), // Tick values [0, 1, 2, 3, 4, 5, 6, 7, ...]
-    ticktext: Array.from({ length: 24 }, (_, i) => i), // Tick labels [0, 1, 2, 3, 4, 5, 6, 7, ...]
+    ticktext: Array.from({ length: 24 }, (_, i) => i.toString()), // Tick labels for the 24 hours
+     // Evenly spaced tick labels
   },
   yaxis: {
     tickvals: dates3, // Use the dates as tick values
-    ticktext: dates3.map(date => new Date(date).toLocaleDateString()) // Format the dates as you prefer
-  },
+    ticktext: dates3.map(function(date) {
+      var dateObj = new Date(date);
+      var weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+      var dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return dateString +"("+weekday+")"; // Concatenate date and weekday
+    }),
+    tickangle: -45, // Set the angle to -45 degrees (diagonal)
+
+    },
   title: 'utilization Heatmap',
   zaxis: {
     title: 'km' // Add the z-axis title here
