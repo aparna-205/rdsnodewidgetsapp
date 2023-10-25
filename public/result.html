@@ -83,6 +83,9 @@ td {
         width: 100px; /* Set the desired width */
         /* Add any other desired styles for the label */
         }
+        .label-width1 {
+          width: 100px; /* Adjust the width to your desired value */
+        }
 
         .warning {
             color: #5dec24!important;
@@ -207,7 +210,7 @@ td {
                   const layout = {
                     autosize: false,
                     width: 550,
-                    height: 400,
+                    height: 470,
                       title: 'Average Speed ',
                       xaxis: {
                           title: 'Date',
@@ -258,7 +261,7 @@ td {
                     var layout1 = {
                       autosize: false,
                       width: 550,
-                      height: 400,
+                      height: 470,
                       title: 'Max Speed',
                       xaxis: {
                           title: 'Date',
@@ -285,69 +288,140 @@ td {
             <div class="custom-section-card-body cleartfix">
               <div class="media align-items-stretch">
                 <div class="align-self-center"></div>   
-                <div id="heatmap" ></div>
-<script>
-  const avgKmByDayAndHourJSON1 = '{{avgKmByDayAndHourJSON}}';
-  const avgKmByDayAndHourJSON2 = JSON.parse(avgKmByDayAndHourJSON1);
-  const dates3 = Object.keys(avgKmByDayAndHourJSON2);
-  const z = dates3.map((date) => {
-    return avgKmByDayAndHourJSON2[date].map(entry => entry.avgKm || 0);
-  });
-  const customColorScale = [
-       ['0.0', 'rgb(189, 177, 180)'],
-    ['0.111111111111', 'rgb(106, 215, 39)'],
-    ['0.222222222222', 'rgb(7, 184, 48)'],
-    ['0.333333333333', 'rgb(253,174,97)'],
-    ['0.444444444444', 'rgb(254,224,144)'],
-    ['0.555555555556', 'rgb(232, 122, 19)'],
-    ['0.666666666667', 'rgb(214, 103, 114)'],
-    ['0.777777777778', 'rgb(176, 23, 38)'],
-    ['0.888888888889', 'rgb(176, 23, 38)'],
-    ['1.0', 'rgb(179, 9, 26)']
-    ];
-  const data = [{
-  x: Array.from({ length: 24 }, (_, i) => i), // Hours
-  y: dates3, // Dates only
-  z: z,
-  type: 'heatmap',
-  colorscale: 'customColorScale',
-  colorbar: {
-    title:'km',
-    titleside:"right"
-  } // Choose the colorscale you prefer
-}];
+                <div id="heatmap"></div>
+                 
+                <label for="dateTimeRange" class="label-width1"></label>
+                <input type="text" id="dateTimeRange" />
+              
+                <script>
+    $(document).ready(function() {
+      $('#dateTimeRange').daterangepicker({
+        autoUpdateInput: true,
+        timePicker: true,
+        timePickerIncrement: 15,
+        locale: {
+          cancelLabel: 'Clear',
+          format: 'MM/DD/YYYY HH:mm',
+        },
+        minDate: '09/01/2023', // Set the minimum date
+        maxDate: moment(),    // Set the maximum date to the current date
+        ranges: {
+          'Last Week': [moment().startOf('week').subtract(1, 'week'), moment().startOf('week').subtract(1, 'second')],
+          'This Week': [moment().startOf('week'), moment()],
+          'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Today': [moment(), moment()],
+          'Last Month': [moment().startOf('month').subtract(1, 'month'), moment().startOf('month').subtract(1, 'second')],
+          'This Month': [moment().startOf('month'), moment()]
+        }
+      });
 
+      $('#dateTimeRange').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('MM/DD/YYYY HH:mm') + ' - ' + picker.endDate.format('MM/DD/YYYY HH:mm'));
+        const startDate = picker.startDate.toDate();
+        const endDate = picker.endDate.toDate();
+        renderHeatmap(startDate, endDate);
+      });
 
-const layout3 = {
-  autosize: false,
-  width: 900,  // Increase the width to your desired value, e.g., 600
-  height: 400, 
+      $('#dateTimeRange').on('cancel.daterangepicker', function() {
+        $(this).val('');
+        renderHeatmap(null, null);
+      });
 
-  xaxis: {
-    title: 'Hour',
-    tickmode: 'array',
-    tickvals: Array.from({ length: 24 }, (_, i) => i), // Tick values [0, 1, 2, 3, 4, 5, 6, 7, ...]
-    ticktext: Array.from({ length: 24 }, (_, i) => i.toString()), // Tick labels for the 24 hours
-     // Evenly spaced tick labels
-  },
-  yaxis: {
-    tickvals: dates3, // Use the dates as tick values
-    ticktext: dates3.map(function(date) {
-      var dateObj = new Date(date);
-      var weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-      var dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      return dateString +"("+weekday+")"; // Concatenate date and weekday
-    }),
-    tickangle: -45, // Set the angle to -45 degrees (diagonal)
+      const avgKmByDayAndHourJSON1 = '{{avgKmByDayAndHourJSON}}';
+      const avgKmByDayAndHourJSON2 = JSON.parse(avgKmByDayAndHourJSON1);
+      const dates3 = Object.keys(avgKmByDayAndHourJSON2);
+      const z = dates3.map((date) => {
+        return avgKmByDayAndHourJSON2[date].map(entry => entry.avgKm || 0);
+      });
 
-    },
-  title: 'utilization Heatmap',
-  zaxis: {
-    title: 'km' // Add the z-axis title here
-  }
-};
-  Plotly.newPlot('heatmap', data, layout3);
-</script>
+      const customColorScale = [
+        ['0.0', 'rgb(189, 177, 180)'],
+        ['0.111111111111', 'rgb(106, 215, 39)'],
+        ['0.222222222222', 'rgb(7, 184, 48)'],
+        ['0.333333333333', 'rgb(253,174,97)'],
+        ['0.444444444444', 'rgb(254,224,144)'],
+        ['0.555555555556', 'rgb(232, 122, 19)'],
+        ['0.666666666667', 'rgb(214, 103, 114)'],
+        ['0.777777777778', 'rgb(176, 23, 38)'],
+        ['0.888888888889', 'rgb(176, 23, 38)'],
+        ['1.0', 'rgb(179, 9, 26)']
+      ];
+
+      const data = [{
+        x: Array.from({ length: 24 }, (_, i) => i), // Hours
+        y: dates3, // Dates only
+        z: z,
+        type: 'heatmap',
+        colorscale: customColorScale, // Use the custom color scale
+        colorbar: {
+          title: 'km',
+          titleside: "right"
+        }
+      }];
+
+      const layout3 = {
+        width: 900,
+        height: 400,
+        xaxis: {
+          title: 'Hour',
+          tickmode: 'array',
+          tickvals: Array.from({ length: 24 }, (_, i) => i),
+          ticktext: Array.from({ length: 24 }, (_, i) => i.toString()),
+        },
+        yaxis: {
+          tickvals: dates3,
+          ticktext: dates3.map(function(date) {
+            var dateObj = new Date(date);
+            var weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            var dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return dateString + "(" + weekday + ")";
+          }),
+          tickangle: -45,
+          tickfont: {
+            size: 8 // Adjust the font size for y-axis ticks
+          }
+        },
+        title: 'utilization Heatmap',
+        zaxis: {
+          title: 'km'
+        }
+      };
+
+      function renderHeatmap(startDate, endDate) {
+        // Filter the data based on the selected date range
+        const filteredDates = dates3.filter(date => {
+          if (!startDate || !endDate) {
+            return true; // No date range specified, so include all dates
+          }
+          const dateObj = new Date(date);
+          return dateObj >= startDate && dateObj <= endDate;
+        });
+        const filteredZ = filteredDates.map(date => {
+          return avgKmByDayAndHourJSON2[date].map(entry => entry.avgKm || 0);
+        });
+
+        // Update the heatmap data
+        const newData = [{
+          x: Array.from({ length: 24 }, (_, i) => i), // Hours
+          y: filteredDates, // Filtered Dates
+          z: filteredZ,
+          type: 'heatmap',
+          colorscale: customColorScale, // Use the custom color scale
+          colorbar: {
+            title: 'km',
+            titleside: "right"
+          }
+        }];
+
+        // Update the heatmap
+        Plotly.react('heatmap', newData, layout3);
+      }
+
+      // Initial rendering of the heatmap with the default date range
+      renderHeatmap(null, null);
+    });
+  </script>
+                
 
                 </div>    
               </div>
