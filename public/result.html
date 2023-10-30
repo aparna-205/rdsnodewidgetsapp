@@ -4,6 +4,10 @@
 <link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/colors.min.css">
 <link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src='https://cdn.plot.ly/plotly-2.27.0.min.js'></script>
+<script src="https://unpkg.com/chart.js@2.8.0/dist/Chart.bundle.js"></script>
+<script src="https://unpkg.com/chartjs-gauge@0.3.0/dist/chartjs-gauge.js"></script>
 
   <!-- Include ApexCharts -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -25,6 +29,40 @@
         font-size: 1.5em;
         /* Adjust this value to your desired width */
     }
+    .card3 {
+      max-width: 250px; 
+      height :150px;
+      padding: 15px;
+      text-align: center;
+      border: 1px solid #9fa8a0;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+       border-radius: 6px;
+    
+      font-size: 1.5em;
+      background-color: #7fa183;
+  }
+  .card3-title {
+    color: rgb(248, 248, 248);
+    text-align: center;
+    /* Set the desired text color */
+  }
+  .card4 {
+    max-width: 250px; 
+    height :150px;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #e95454;
+    box-shadow: 0 4px 8px 0 rgba(223, 218, 218, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+     border-radius: 6px;
+  
+    font-size: 1.5em;
+    background-color: #e76767;
+}
+.card4-title {
+  color: rgb(248, 248, 248);
+  text-align: center;
+  /* Set the desired text color */
+}
     /* Apply the custom styles to the second section cards */
 .custom-second-section-card {
   max-width: 1000px;
@@ -33,12 +71,6 @@
 }
 
 /* Make the table headers sticky at the top of the table */
-table thead th {
-  position: sticky;
-  top: 0;
-  background-color: #090c42;
-  color: white;
-}
 
 /* Make the table headers z-index higher for stacking */
 table thead th {
@@ -48,6 +80,8 @@ table thead th {
 /* Style the table */
 table {
   width: 350px;
+  position: sticky;
+
   border-collapse: collapse;
 }
 
@@ -75,6 +109,11 @@ td {
 .table-scroll {
   max-height: 700px;
   overflow-y: auto;
+}
+canvas {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
     tr:nth-child(even){background-color: #ebeaec;}
@@ -210,14 +249,14 @@ td {
                   const layout = {
                     autosize: false,
                     width: 550,
-                    height: 470,
+                    height: 500,
                       title: 'Average Speed ',
                       xaxis: {
                           title: 'Date',
-                          showgrid: false
                       },
                       yaxis: {
                           title: 'Speed',
+
                       }
                   };
                   Plotly.newPlot('speedGraph', [trace2], layout);
@@ -234,6 +273,7 @@ td {
             <div class="custom-second-section-card-body cleartfix">
               <div class="media align-items-stretch">
                 <div class="align-self-center">
+
                   <div id="myDiv"><!-- Plotly chart will be drawn inside this DIV --></div>
                   <script>
 
@@ -261,7 +301,7 @@ td {
                     var layout1 = {
                       autosize: false,
                       width: 550,
-                      height: 470,
+                      height: 500,
                       title: 'Max Speed',
                       xaxis: {
                           title: 'Date',
@@ -282,13 +322,15 @@ td {
       </div>
     </div>
     <div class="row">
-      <div class="col-xl-12 col-md-12" style="width: 18rem;">
+      <div class="col-xl-14 col-md-12" >
         <div class="custom-section-card">
           <div class="custom-section-card-content">
             <div class="custom-section-card-body cleartfix">
               <div class="media align-items-stretch">
                 <div class="align-self-center"></div>   
-                <div id="heatmap"></div>
+                <div id="heatmap">
+
+                </div>
                  
                 <label for="dateTimeRange" class="label-width1"></label>
                 <input type="text" id="dateTimeRange" />
@@ -361,7 +403,7 @@ td {
 
       const layout3 = {
         width: 900,
-        height: 400,
+        height: 500,
         xaxis: {
           title: 'Hour',
           tickmode: 'array',
@@ -421,8 +463,6 @@ td {
       renderHeatmap(null, null);
     });
   </script>
-                
-
                 </div>    
               </div>
             </div>
@@ -430,5 +470,123 @@ td {
         </div>
       </div>
 
-  </div>
+      <section id="stats-subtitle">
+        <div class="row">
+          <div class="col-2 mt-3 mb-1">
+          </div>
+        </div>
+      <div class="row">
+        <div class="col-xl-6 col-md-6 ">
+          <div class="custom-second-section-card">
+            <div class="custom-second-section-card-content">
+              <div class="custom-second-section-card-body cleartfix">
+                <div class="media align-items-stretch">
+                  <div class="align-self-center">
+                      <div id="gauge1" style="width: 480px; height: 400px;"></div>
+
+                    <script>
+                      const gaugeValue  = '{{avgvoltage}}';
+
+                      var data = [
+    {
+        mode: "gauge+number",
+        type: "indicator",
+        value: gaugeValue,
+        title: { text: "Battery Voltage", font: { size: 14 }},
+        gauge: {
+            shape: "angular",
+            bar: {
+                color: "blue",
+                line: {
+                    color: "black",
+                    width: 0.01
+                },  
+                thickness: 0
+            },
+            bgcolor: "#388",
+            bordercolor: "#a89d32",
+            borderwidth: 2,
+            axis: {
+                range: [40,55],
+                visible: true,
+                tickmode: "array",
+                ticks: "outside",
+            },
+             steps: [
+            { range: [40, 45], color: "red" },
+            { range: [45, 50], color: "orange" },
+            { range: [50, 55], color: "green" },
+          ],
+        }
+    }
+]
+
+var theta = 93.5
+var r = 0.7
+var x_head = r * Math.cos(Math.PI/180*theta)
+var y_head = r * Math.sin(Math.PI/180*theta)
+
+let layout6 = {
+  xaxis: {range: [0, 1], showgrid: false, 'zeroline': false, 'visible': false},
+  yaxis: {range: [0, 1], showgrid: false, 'zeroline': false, 'visible': false},
+  showlegend: false,
+  colorscale: [
+        [0, 'red'],      // Start with red at 0%
+        [0.5, 'orange'], // Transition to orange at 50%
+        [1, 'green']     // End with green at 100%
+    ],
+  annotations: [
+    {
+      ax: 0.5,
+      ay: 0,
+      axref: 'x',
+      ayref: 'y',
+      x: x_head,
+      y: y_head,
+      xref: 'x',
+      yref: 'y',
+      showarrow: false,
+      arrowhead: 4,
+    }
+  ]
+};
+Plotly.newPlot('gauge1', data, layout6)
+                  </script>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card3">
+            <div class="card3-content">
+              <div class="card3-body cleartfix">
+                <div class="media align-items-stretch">
+                  <div class="align-self-center">
+                    <div class="card3-title">Average ON hours</div>
+                    <h3 class="white">{{roundedAvgonhours}}</h3>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card4">
+            <div class="card4-content">
+              <div class="card4-body cleartfix">
+                <div class="media align-items-stretch">
+                  <div class="align-self-center">
+                    <div class="card4-title">Average OFF hours</div>
+                    <h3 class="white">{{roundedAvgoffhours}}</h3>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 </section>
