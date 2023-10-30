@@ -6,7 +6,7 @@ const bodyParser = require('body-parser'); // Import body-parser
 const app = express();
 const port = 3000;
 const pool = createPool({
-    host: 'database-1.cbjabnlglbz6.ap-south-1.rds.amazonaws.com',
+    host: 'database-1.cxvimxaxcei9.ap-south-1.rds.amazonaws.com',
     user: 'admin',
     password: 'ingo1234',
     database: 'ingodata',
