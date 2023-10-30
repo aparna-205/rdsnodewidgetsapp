@@ -9,13 +9,13 @@ const pool = createPool({
     host: 'database-1.cbjabnlglbz6.ap-south-1.rds.amazonaws.com',
     user: 'admin',
     password: 'ingo1234',
-    database: 'ingoflee',
+    database: 'ingodata',
     connectionLimit: 10
 });
 const fs = require('fs');
 const path = require('path');
 
-const getTableNamesQuery = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE table_schema = 'ingoflee';";
+const getTableNamesQuery = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE table_schema = 'ingodata';";
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
