@@ -74,29 +74,63 @@ app.post('/fetch-data', (req, res) => {
             // Send the "noDataHtml" directly if no data is found
             return res.send(noDataHtml);
         }
-       
-    
         let totalDistance = 0;
         const data = results;
         let onToOffCount = 0;
-
          for (let i = 0; i < data.length - 1; i++) {
                if (data[i]['IGN'] === 'ON' && data[i + 1]['IGN'] === 'OFF') {
           onToOffCount++;
             }
            }
-           let offToOnCount = 0;
+        let offToOnCount = 0;
+          for (let i = 0; i < data.length - 1; i++) {
+                if (data[i]['IGN'] === 'OFF' && data[i + 1]['IGN'] === 'ON') {
+            offToOnCount++;
+            }
+           }
+           let sumOfAverageVoltage = 0;
+           let filteredDataLength = 0;
 
-           for (let i = 0; i < data.length - 1; i++) {
-               if (data[i]['IGN'] === 'OFF' && data[i + 1]['IGN'] === 'ON') {
-                   offToOnCount++;
+           for (let i = 0; i < data.length; i++) {
+            if (data[i]['IGN'] === 'ON' && data[i]['Speed'] > 1) {
+                sumOfAverageVoltage += data[i]['External Voltage'];
+                filteredDataLength++;
+                avgvoltage = (sumOfAverageVoltage/filteredDataLength).toFixed(2);
+
                }
            }
-           
-           console.log('Number of OFF to ON state transitions:', offToOnCount);
+let avgonhours = 0;
 
-        console.log('Number of ON to OFF state transitions:', onToOffCount);
+for (let i = 0; i < data.length - 1; i++) {
+    if (data[i]['IGN'] === 'ON' && data[i + 1]['IGN'] === 'OFF') {
+        // Calculate the time difference between the current and next rows
+        const currentTime = new Date(data[i]['date_time']);
+        const nextTime = new Date(data[i + 1]['date_time']);
+        const timeDifference = (nextTime - currentTime) / 3600000; // Convert milliseconds to hours
+        avgonhours += timeDifference;
 
+    }
+}
+
+
+const roundedAvgonhours = avgonhours.toFixed(2);
+
+console.log(roundedAvgonhours);
+let avgoffhours = 0;
+
+for (let i=0; i<data.length - 1; i++) {
+    if(data[i]['IGN'] === 'OFF' && data[i+1]['IGN'] === 'ON') {
+        const currentTime = new Date(data[i]['date_time']);
+        const nextTime = new Date(data[i+1]['date_time']);
+        const timeDifference = (nextTime - currentTime) / 3600000;
+        avgoffhours +=timeDifference;
+    }
+}
+
+const roundedAvgoffhours = avgoffhours.toFixed(2);
+console.log("Sum of External Voltage:", sumOfAverageVoltage);
+           console.log("Length of Filtered Data:", filteredDataLength);
+           console.log("avg voltage", avgvoltage)
         const avgKmByDate = {};
         data.forEach((row)=> {
             if (row['IGN'] !== 'OM') {
@@ -109,7 +143,6 @@ app.post('/fetch-data', (req, res) => {
                 avgKmByDate[formattedDate].push(currentavgkm);
             }
         });
-
         const avgKmData = Object.keys(avgKmByDate).map((date) =>{
         const kms       = avgKmByDate[date];
         const sumKms    = kms.reduce((acc, km) => acc + km, 0);
@@ -162,9 +195,6 @@ const avgKmByDayAndHourJSON = JSON.stringify(avgKmByDayAndHour);
     const sumOfAverageKms = avgKmData.reduce((acc, dataPoint) => acc + dataPoint.averageKm, 0);
     const numberOfDays = avgKmData.length;
     const averageKmPerDay = (sumOfAverageKms / numberOfDays).toFixed(2);
-
-
-
         const maxSpeedByDate = {};
         data.forEach((row) => {
             if (row['IGN'] === 'ON' && row['Speed'] <= 35) {
@@ -224,7 +254,6 @@ const avgKmByDayAndHourJSON = JSON.stringify(avgKmByDayAndHour);
         avgSpeedDataObject[entry.date] = parseFloat(entry.averageSpeed);
         });
         const avgSpeedDataMergedJSON = JSON.stringify(avgSpeedDataObject);
-        console.log(imeiToObject);
         const htmlTemplatePath = path.join(__dirname, 'public', 'result.html');
         fs.readFile(htmlTemplatePath, 'utf8', (err, template) => {
             if (err) {
@@ -233,6 +262,9 @@ const avgKmByDayAndHourJSON = JSON.stringify(avgKmByDayAndHour);
             }        
                 const renderedHtml = template
                 .replace('{{selectedTable}}', selectedTable)
+                .replace('{{avgvoltage}}', avgvoltage)
+                .replace('{{roundedAvgonhours}}', roundedAvgonhours)
+                .replace('{{roundedAvgoffhours}}', roundedAvgoffhours)
                 .replace('{{fromDateTimeObj}}', fromDateTimeObj)
                 .replace('{{toDateTimeObj}}', toDateTimeObj)
                 .replace('{{averageKmPerDay}}', averageKmPerDay)
